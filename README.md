@@ -1,42 +1,91 @@
 # Elector - AI-Powered Civic Education Platform
 
-Elector is a production-grade, scalable AI platform designed to educate Indian citizens about the democratic process. Powered by **Google Gemini 2.5 Flash**, it provides a structured, safe, and engaging learning experience.
+**Elector** is a production-grade, highly scalable AI platform designed specifically to educate Indian citizens about the democratic process. By leveraging the advanced reasoning capabilities of **Google Gemini 2.5 Flash**, the platform delivers a deeply engaging, responsive, and adaptive educational experience. 
 
-## 🏗️ Architecture
+From providing instantaneous, safe, and fact-checked guidance via a voice-enabled AI Chat, to presenting dynamic, progression-based interactive curriculum modules, Elector bridges the gap between complex constitutional mechanisms and everyday voters.
+
+## 🌟 Core Modules & Capabilities
+
+- **Elector AI Chat (Global Widget & Dedicated Screen):** A robust conversational agent with strict safety guardrails and deep context memory. It features seamless **Web Speech API integration** allowing users to dictate questions hands-free.
+- **Structured Learning Curriculum:** A gamified, step-by-step module system (from "Introduction to Elections" to "Results Formation"). Features state-persistent unlocking mechanisms and integrated knowledge checks.
+- **Adaptive Mini-Quizzes:** Dynamically generated MCQs embedded throughout the learning modules, complete with instant visual feedback and score tracking.
+- **Interactive Election Timeline:** A beautiful carousel-based timeline highlighting key electoral events, capable of utilizing AI to fetch deeper explanations for each timeline step.
+- **Resilient Offline Architecture:** Complete frontend gracefully degrades to comprehensive fallback data if the backend is temporarily unreachable, guaranteeing uninterrupted learning.
+- **Modern UI/UX:** Built with React, Tailwind CSS v4, and Framer Motion for sleek micro-animations, glassmorphism, gradient text, and full Dark Mode support.
+
+---
+
+## 🏗️ System Architecture
+
+### 1. High-Level Modular Design
+The project separates concerns cleanly between a fast, reactive frontend and a secure, AI-orchestrating backend.
 
 ```mermaid
 graph TD
-    User((User)) <--> Frontend[React + Tailwind + Framer Motion]
-    Frontend <--> Backend[FastAPI Modular Backend]
+    User((User Voice/Text)) -->|Interacts| Frontend[React + Tailwind + Framer Motion]
+    Frontend <-->|REST API via FastAPI| Backend[FastAPI Modular Backend]
     
-    subgraph Backend
-        API[API Routes] <--> Services[Service Layer]
-        Services <--> AI[AI Service: Gemini]
-        Services <--> Data[Data Service: Firebase]
-        AI <--> Gemini((Google Gemini API))
-        Data <--> Firebase((Firestore))
+    subgraph Backend Services
+        API[API Routers: Chat, Quiz, Timeline]
+        PromptBuilder[Prompt Building & Injection]
+        SafetyGuard[Input/Output Safety Classification]
+        Formatter[JSON Response Formatter]
+        
+        API --> PromptBuilder
+        PromptBuilder --> SafetyGuard
+        SafetyGuard --> Formatter
     end
+    
+    Formatter <--> AI((Google Gemini 2.5 Flash))
+    Formatter <--> DB((Firebase Firestore))
 ```
 
-### 📂 Modular Structure
-- **Backend (`/backend/app`)**:
-    - `core/`: Config, Logging, Middleware
-    - `api/`: REST Controllers (Chat, Quiz, Timeline)
-    - `services/`: Business Logic
-        - `ai/`: Prompt building, safety guards, response formatting
-        - `data/`: Firebase/Firestore integration
-    - `models/`: Pydantic validation schemas
-- **Frontend (`/frontend`)**:
-    - `context/`: Theme & Global State
-    - `pages/`: UI Views (Chat, Timeline, Dashboard, Quiz)
+### 2. Voice-Powered AI Chat Sequence
+The Elector AI chat utilizes browser-native speech recognition perfectly synchronized with React's state management to prevent closure staleness and ensure robust error handling.
 
-## 🚀 Features
-- **Elector AI Assistant**: Expert guidance with context memory and safety classification.
-- **Adaptive Quiz Engine**: Dynamically generated MCQs based on difficulty and topic.
-- **AI Timeline Intelligence**: Explains election steps in-depth using AI.
-- **Learning Dashboard**: Track your mastery and recent activity.
-- **Dark Mode & Smooth UI**: Modern SaaS-level experience with Framer Motion animations.
-- **Voice Support**: Integrated Web Speech API for hands-free queries.
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser as Web Speech API
+    participant React as ChatUI State
+    participant Backend as FastAPI
+    participant Gemini as Google Gemini
+
+    User->>Browser: Clicks Mic & Speaks
+    Browser-->>React: onresult(transcript)
+    React->>React: Updates Input State
+    React->>Backend: POST /api/v1/chat { message, history }
+    Backend->>Gemini: Validated Prompt + Context
+    Gemini-->>Backend: AI Explanation
+    Backend-->>React: JSON Reply
+    React-->>User: Displays Message & Animates
+```
+
+### 3. Curriculum & Progression State Flow
+The learning engine prevents skipping ahead, ensuring users fully understand foundational concepts before proceeding.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Module1_Locked
+    Module1_Locked --> Module1_Unlocked : App Load (Default)
+    Module1_Unlocked --> Quiz_Active : Read Theory
+    Quiz_Active --> Module1_Completed : Pass MCQs
+    Module1_Completed --> Module2_Unlocked : State Update (localStorage)
+    Module2_Unlocked --> [*]
+```
+
+---
+
+### 📂 Directory Architecture
+- **Backend (`/backend/app`)**:
+    - `core/`: Settings, Logging configurations
+    - `api/`: REST Controllers
+    - `services/`: Business Logic (`ai/` prompt & safety, `data/` database logic)
+    - `models/`: Strict Pydantic schemas for data validation
+- **Frontend (`/frontend/src`)**:
+    - `components/`: Reusable UI (`ChatWidget.tsx`, `learning/ModuleCard.tsx`)
+    - `context/`: `ThemeContext` for global Dark Mode handling
+    - `pages/`: Primary views (`Learn.tsx`, `Chat.tsx`, `Timeline.tsx`)
 
 ## 🛠️ Setup & Local Development
 
